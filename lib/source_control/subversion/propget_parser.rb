@@ -14,7 +14,16 @@ module SourceControl
             line = split[1]
           end
           split = line.split(" ")
-          directories["#{current_dir}/#{split[0]}"] = split.last unless split[0].blank? || split.length > 2
+
+          # refactored method to handle .. in external path
+          if !split[0].blank? and !(split.length > 2)
+            base_dir = current_dir
+            while split[0].index("../") == 0
+              split[0].sub!("../", '')
+              base_dir = base_dir.split("/").slice(0..-2).join("/")
+            end            
+            directories["#{base_dir}/#{split[0]}"] = split.last
+          end
         end
         directories
       end

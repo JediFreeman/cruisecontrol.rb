@@ -71,11 +71,14 @@ module SourceControl
       end
 
       if @check_externals
-        externals.each do |ext_path, ext_url|
+        # switched order of ext_url and ext_path
+        externals.each do |ext_url, ext_path|
           ext_logger = ExternalReasons.new(ext_path, reasons)
+          # added error_log definition for base error log
           ext_svn = Subversion.new(:path => File.join(self.path, ext_path),
                                    :repository => ext_url,
-                                   :check_externals => false)
+                                   :check_externals => false,
+                                   :error_log => self.error_log)
           result = false unless ext_svn.up_to_date?(ext_logger)
         end
       end
@@ -91,8 +94,9 @@ module SourceControl
 
     def externals
       return {} unless File.exist?(path)
-
-      svn_output = svn('propget', ['-R', 'svn:externals'])
+ 
+      # added info.url explicit call for propget svn:externals
+      svn_output = svn('propget', ['-R', 'svn:externals', info.url])
       Subversion::PropgetParser.new.parse(svn_output)
     end
 
